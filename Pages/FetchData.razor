@@ -1,0 +1,41 @@
+﻿@page "/fetchdata"
+
+<PageTitle>Weather forecast</PageTitle>
+
+@using MyWeatherApp.Data
+@inject WeatherForecastService ForecastService
+
+<p>天气预报</p>
+
+@if (weather == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    foreach(var forecast in weather.forecasts)
+    {
+        <p>@forecast.city</p>
+        @foreach(var cast in forecast.casts)
+        {
+            <div class="flex gap-4">
+                <p>@cast.date</p>
+                <p>@cast.daytemp</p>
+                <p>@cast.dayweather</p>
+                <p>@cast.daywind</p>
+            </div>
+        }
+    }
+}
+
+@code {
+    public WeatherResponse? weather;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //var districtResponse = await DistrictLookUpService.LookUpDistricts("深圳");
+
+        weather = await ForecastService.GetWeather();
+    }
+}
+

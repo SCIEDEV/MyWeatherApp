@@ -1,0 +1,19 @@
+﻿@inherits LayoutComponentBase
+
+<PageTitle>MyWeatherApp</PageTitle>
+
+<div class="drawer drawer-mobile">
+    <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
+    <div class="drawer-content p-12">
+        @Body
+    </div>
+    <div class="drawer-side">
+        <label for="my-drawer-2" class="drawer-overlay"></label>
+        <ul class="menu p-4 overflow-y-auto w-80 bg-base-200 text-base-content">
+            <!-- Sidebar content here -->
+            <li><a href="">主页</a></li>
+            <li><a href="counter">计时器</a></li>
+            <li><a href="fetchdata">查询天气</a></li>
+        </ul>
+    </div>
+</div>
