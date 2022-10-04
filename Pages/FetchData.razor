@@ -4,6 +4,7 @@
 
 @using MyWeatherApp.Data
 @inject WeatherForecastService ForecastService
+@inject DistrictLookupService DistrictService;
 
 <p>天气预报</p>
 
@@ -13,10 +14,10 @@
 }
 else
 {
-    foreach(var forecast in weather.forecasts)
+    foreach (var forecast in weather.forecasts)
     {
         <p>@forecast.city</p>
-        @foreach(var cast in forecast.casts)
+        @foreach (var cast in forecast.casts)
         {
             <div class="flex gap-4">
                 <p>@cast.date</p>
@@ -31,11 +32,13 @@ else
 @code {
     public WeatherResponse? weather;
 
+    public List<City>? cities;
+
     protected override async Task OnInitializedAsync()
     {
-        //var districtResponse = await DistrictLookUpService.LookUpDistricts("深圳");
+        cities = await DistrictService.LookUpCitiesAsync("深圳");
 
-        weather = await ForecastService.GetWeather();
+        weather = await ForecastService.GetWeather(cities[0].adcode);
     }
 }
 

@@ -41,11 +41,11 @@ public class Cast
 
 public class WeatherForecastService
 {
-    public async Task<WeatherResponse> GetWeather(string cityCode = "110000")
+    public async Task<WeatherResponse> GetWeather(string adcode = "110000")
     {
         try
         {
-            var url = $"https://restapi.amap.com/v3/weather/weatherInfo?key=315f705f52615604772b35432034b150&city={cityCode}&extensions=all";
+            var url = $"https://restapi.amap.com/v3/weather/weatherInfo?key=315f705f52615604772b35432034b150&city={adcode}&extensions=all";
             var client = new HttpClient();
             var res = await client.GetAsync(url);
             var json = await res.Content.ReadAsStringAsync();

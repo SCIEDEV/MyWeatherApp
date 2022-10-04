@@ -3,45 +3,15 @@ using Newtonsoft.Json;
 
 namespace MyWeatherApp.Data
 {
-    public class DistrictResponse
+    public class City
     {
-        public string status { get; set; }
-        public string info { get; set; }
-        public string infocode { get; set; }
-        public string count { get; set; }
-        public Suggestion suggestion { get; set; }
-        public List<Province> districts { get; set; }
-    }
-
-    public class Suggestion
-    {
-        public List<string> keywords;
-        public List<string> cities;
-    }
-
-    public class Province
-    {
-        public List<string> citycode { get; set; }
-        public string adcode { get; set; }
-        public string name { get; set; }
-        public string center { get; set; }
-        public string level { get; set; }
-        public List<District> districts { get; set; }
-    }
-
-    public class District
-    {
-        public string citycode { get; set; }
-        public string adcode { get; set; }
-        public string name { get; set; }
-        public string center { get; set; }
-        public string level { get; set; }
-        public List<District> districts { get; set; }
+        public string name;
+        public string adcode;
     }
 
     public class DistrictLookupService
 	{
-		public async Task<DistrictResponse> LookUpDistricts(string keyword)
+		public async Task<List<City>> LookUpCitiesAsync(string keyword)
         {
             string key = "315f705f52615604772b35432034b150";
 
@@ -49,10 +19,30 @@ namespace MyWeatherApp.Data
             var client = new HttpClient();
             var res = await client.GetAsync(url);
             var json = await res.Content.ReadAsStringAsync();
-            var districtResponse = JsonConvert.DeserializeObject<DistrictResponse>(json);
+            var districtResponse = JsonConvert.DeserializeObject<dynamic>(json);
 
-            return districtResponse;
+            return getCities(districtResponse.districts);
         }
-	}
+
+        private List<City> getCities(dynamic districts)
+        {
+            var cities = new List<City>();
+
+            foreach (var district in districts)
+            {
+                switch ((string)district.level)
+                {
+                    case "city":
+                        cities.Add(new City() { name = district.name, adcode = district.adcode });
+                        break;
+                    case "province":
+                        cities.AddRange(getCities(district.districts));
+                        break;
+                }
+            }
+
+            return cities;
+        }
+    }
 }
 
