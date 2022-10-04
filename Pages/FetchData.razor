@@ -6,39 +6,76 @@
 @inject WeatherForecastService ForecastService
 @inject DistrictLookupService DistrictService;
 
-<p>天气预报</p>
+<div class="flex flex-col gap-8">
 
-@if (weather == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    foreach (var forecast in weather.forecasts)
+    <p class="font-bold text-4xl">查询天气</p>
+
+    <div class="form-control">
+        <div class="input-group">
+            <!--data binding 参考 https://learn.microsoft.com/en-us/aspnet/core/blazor/components/data-binding?view=aspnetcore-6.0-->
+            <input type="text" placeholder="Search…" class="input input-bordered" @bind="search_text" />
+            <button class="btn btn-square" @onclick="SearchCity">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            </button>
+        </div>
+    </div>
+
+    @if (weather == null)
     {
-        <p>@forecast.city</p>
-        @foreach (var cast in forecast.casts)
+        if (cities != null && cities.Count <= 0)
         {
-            <div class="flex gap-4">
-                <p>@cast.date</p>
-                <p>@cast.daytemp</p>
-                <p>@cast.dayweather</p>
-                <p>@cast.daywind</p>
-            </div>
+            <p>该城市不存在</p>
+        }
+        else
+        {
+            <p><em>Loading...</em></p>
         }
     }
-}
+    else
+    {
+        foreach (var forecast in weather.forecasts)
+        {
+            <p>@forecast.city</p>
+            @foreach (var cast in forecast.casts)
+            {
+                <div class="flex gap-4">
+                    <p>@cast.date</p>
+                    <p>@cast.daytemp</p>
+                    <p>@cast.dayweather</p>
+                    <p>@cast.daywind</p>
+                </div>
+            }
+        }
+    }
+
+</div>
 
 @code {
     public WeatherResponse? weather;
 
     public List<City>? cities;
 
+    private string? search_text;
+
     protected override async Task OnInitializedAsync()
     {
-        cities = await DistrictService.LookUpCitiesAsync("深圳");
+        weather = await ForecastService.GetWeather();
+    }
 
-        weather = await ForecastService.GetWeather(cities[0].adcode);
+    public async void SearchCity()
+    {
+        weather = null;
+
+        StateHasChanged();
+
+        cities = await DistrictService.LookUpCitiesAsync(search_text);
+
+        if (cities.Count > 0)
+        {
+            weather = await ForecastService.GetWeather(cities[0].adcode);
+        }
+
+        StateHasChanged();
     }
 }
 
