@@ -2,4 +2,83 @@
 
 <PageTitle>Index</PageTitle>
 
-<p class="text-4xl font-bold">天气预报</p>
+
+@using MyWeatherApp.Data
+@inject WeatherForecastService ForecastService
+@inject DistrictLookupService DistrictService;
+
+<div class="flex flex-col gap-8">
+
+    <p class="font-bold text-4xl">天气</p>
+
+    @if (!isLoading)
+    {
+        @for (int i = 0; i < addedCities.Count; i++)
+        {
+            <div>
+                <p>@addedCities[i].name</p>
+                @{ var cast = forecasts[i]; }
+                <div class="flex gap-4">
+                    <p>@cast.daytemp˚</p>
+                    <p>@cast.dayweather</p>
+                </div>
+            </div>
+        }
+    }
+
+
+    <div class="form-control">
+        <div class="input-group">
+            <!--data binding 参考 https://learn.microsoft.com/en-us/aspnet/core/blazor/components/data-binding?view=aspnetcore-6.0-->
+            <input type="text" placeholder="添加城市…" class="input input-bordered" @bind="search_text" />
+            <button class="btn btn-square" @onclick="AddCity">+</button>
+        </div>
+    </div>
+
+</div>
+
+@code {
+    public List<City> addedCities = new List<City>();
+    public List<Cast> forecasts = new List<Cast>();
+
+    public List<City>? cities;
+
+    private string? search_text;
+
+    public bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        addedCities.Add((await DistrictService.LookUpCitiesAsync("深圳"))[0]);
+
+        RefreshCities();
+    }
+
+    public async void AddCity()
+    {
+
+        cities = await DistrictService.LookUpCitiesAsync(search_text);
+
+        if(cities.Count > 0)
+        {
+            isLoading = true;
+            addedCities.Add(cities[0]);
+            RefreshCities();
+            search_text = "";
+        }
+    }
+
+    public async void RefreshCities()
+    {
+        forecasts.Clear();
+        foreach(var city in addedCities)
+        {
+            var res = await ForecastService.GetWeather(city.adcode);
+            forecasts.Add(res.forecasts[0].casts[0]);
+        }
+
+        isLoading = false;
+        StateHasChanged();
+    }
+}
+
