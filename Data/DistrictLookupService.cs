@@ -5,8 +5,8 @@ namespace MyWeatherApp.Data
 {
     public class City
     {
-        public string name;
-        public string adcode;
+        public string name { get; set; }
+        public string adcode { get; set; }
     }
 
     public class DistrictLookupService

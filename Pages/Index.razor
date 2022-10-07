@@ -5,7 +5,9 @@
 
 @using MyWeatherApp.Data
 @inject WeatherForecastService ForecastService
-@inject DistrictLookupService DistrictService;
+@inject DistrictLookupService DistrictService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject ILogger<Index> logger
 
 <div class="flex flex-col gap-8">
 
@@ -47,33 +49,55 @@
 
     public bool isLoading = true;
 
-    protected override async Task OnInitializedAsync()
+    protected override Task OnAfterRenderAsync(bool firstRender)
     {
-        addedCities.Add((await DistrictService.LookUpCitiesAsync("深圳"))[0]);
+        //we moved it from initialized to after render because of some weird issues with javascript
+
+        if (firstRender)
+        {
+            Init();
+        }
+
+        return base.OnAfterRenderAsync(firstRender);
+    }
+
+    public async void Init()
+    {
+        if (await localStorage.ContainKeyAsync("cities"))
+        {
+            addedCities = await localStorage.GetItemAsync<List<City>>("cities");
+        }
+
+        if(addedCities.Count <= 0)
+        {
+            addedCities.Add((await DistrictService.LookUpCitiesAsync("深圳"))[0]);
+        }
 
         RefreshCities();
     }
 
     public async void AddCity()
     {
-
         cities = await DistrictService.LookUpCitiesAsync(search_text);
 
-        if(cities.Count > 0)
+        if (cities.Count > 0)
         {
             isLoading = true;
             addedCities.Add(cities[0]);
             RefreshCities();
             search_text = "";
         }
+
+        await localStorage.SetItemAsync<List<City>>("cities", addedCities);
     }
 
     public async void RefreshCities()
     {
         forecasts.Clear();
-        foreach(var city in addedCities)
+        foreach (var city in addedCities)
         {
             var res = await ForecastService.GetWeather(city.adcode);
+
             forecasts.Add(res.forecasts[0].casts[0]);
         }
 
